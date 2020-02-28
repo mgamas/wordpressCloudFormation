@@ -24,5 +24,7 @@ The master template, has the task of receive the parameters needed and requested
 
 *** you can see detail about parameters on file comments. ***
 
+### VPC Template [vpc.yml] ⚙️
+
 ***VPC Diagram***
 ![alt text](https://github.com/mgamas/wordpressCloudFormation/raw/master/vpcImage.png)
