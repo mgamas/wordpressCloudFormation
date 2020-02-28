@@ -1,0 +1,120 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description: RDS my sql
+
+#rds parameters. 
+Parameters: 
+  enviromentName:
+    Description: enviroment for all rds
+    Type: String
+    Default: rdsEG
+
+  dbClass:
+    Description: database instance class
+    Type: String
+    #here I configure a default dbClass, but you can create a multiple choise for future implements. 
+    #you can use mapings. and set allowed values
+    Default: db.t2.micro
+    # AllowedValues:
+      #- t1.micro
+      #- t2.nano
+      #- t2.micro
+      #- t2.small
+      #- t2.medium
+  EngineVer:
+    Description: Version of the Engine of the DB.
+    Type: String
+    Default: '5.7.22'
+  
+  dbName:
+    Description: database name
+    Type: String
+    Default: wordpressEG
+  
+  dbUserName:
+    Default: admin
+    NoEcho: 'true'
+    Description: The WordPress database admin account username
+    Type: String
+    
+  dbPassword:
+    Default: password
+    NoEcho: 'true'
+    Description: The WordPress database admin account password
+    Type: String
+
+  DBAllocatedStorage:
+    Default: '5'
+    Description: The size of the database (Gb)
+    Type: Number
+  
+  PrivateSubnet1:
+    Description: Nombre de la subnet 1 privada en donde estar? la BD
+    Type: String
+
+  PrivateSubnet2:
+    Description: Nombre de la subnet 2 privada en donde estar? la BD
+    Type: String
+  
+  vpcId:
+    Description: Nombre de la VPC
+    Type: String
+  
+  secGroup:
+    Description: Nombre del security Group
+    Type: String
+
+#here you can add a mapping section
+#Mappings:
+  #AWSInstanceType2Arch:
+    #t1.micro:
+      #Arch: HVM64
+    #t2.nano:
+      #Arch: HVM64
+    #t2.micro:
+#you can use the mapings to make sets of values for example amis. 
+
+Resources: 
+  #here we created an DBSecurityGroup, but you can skip that section, because rds works with ec2 security group too. 
+  DBSecurityGroup:
+    Type: AWS::RDS::DBSecurityGroup
+    Properties:
+      EC2VpcId: !Ref vpcId
+      DBSecurityGroupIngress: 
+        - EC2SecurityGroupId: !Ref secGroup
+      GroupDescription: Ingress for Amazon EC2 security group
+  
+  rdsDBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: DBSubnetGroup EG 
+      #remember you have to send two subnets on diferentes areas, west-1a and west-1b for example
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      Tags:
+      - Key: Name
+        Value: !Sub ${enviromentName} RDS-subnetGroup
+
+  rdsDBInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: !Ref DBAllocatedStorage
+      DBInstanceClass: !Ref dbClass
+      DBName: !Ref dbName
+      DBSecurityGroups: 
+        - !Ref DBSecurityGroup
+      DBSubnetGroupName: !Ref rdsDBSubnetGroup
+      Engine: mysql
+      MasterUsername: !Ref dbUserName
+      MasterUserPassword: !Ref dbPassword
+      EngineVersion: !Ref EngineVer
+      Tags:
+        - Key: Name
+          Value:  !Sub ${enviromentName} RDS-MYSQL
+
+Outputs:
+  RDSEndpoint:
+    Description: RDS endpoint
+    #here is a a change on the output value, becose we need to specify the endopint adress. 
+    Value:  !GetAtt [rdsDBInstance, Endpoint.Address]

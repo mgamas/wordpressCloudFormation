@@ -1,0 +1,58 @@
+#version of the template
+AWSTemplateFormatVersion: 2010-09-09
+#This template has the task of call anothers staks to complete de enviroment
+#template description
+Description: master para combinar vpc rds e ec2 para wordpress
+#.......Parameters can be use on tamplate like a variables, and can be used in special functions of aws........
+#Parameters assignation
+Parameters: 
+  #the key value for EC2 acces
+  KeyName:
+    #description of parameter
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    #type of parameter, can be string number, etc; or a aws type
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    #Constraint shows the message in case of wrogn data ingress.
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  # in case of change the templates of bucket, you can use the parameter to set the new bucket. 
+  BucketName:
+    Description: buket name
+    Type: String
+    #the default specifies the default parameter, in case that you dont put a parameter, the stack will take the default parameter. 
+    Default: egamas
+
+#resource section is for specify the aws objects to use for generate the enviroment. 
+Resources:
+  #this part of code, calls the vpc template.
+  VPC: 
+    #same that type on paarameters section we use type on resources to specify the object type
+    Type: AWS::CloudFormation::Stack
+    #the properties section is for specify specific behaivor and qualities to the object
+    Properties: 
+      #every object has his own set of properties, the properties of the object are specify for us. 
+    #if you se the sub function, means that you can use ${} to call a specific parameter, resource or resource output. 
+      TemplateURL: !Sub "https://${BucketName}.s3-us-west-2.amazonaws.com/vpc.yml"
+  #with RDS we call the database template stack. in this case we dont send the parameters of the database but we can
+  #use the master template to get the database parameters and send it to the rds template
+  RDS: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub "https://${BucketName}.s3-us-west-2.amazonaws.com/rds-mysql.yml"
+      Parameters: 
+        #here you can se the GetAtt function that allow us to get an att of the specific object output.
+        #the outputs are specify by us in the outputs section of the template, we can see that on vpc or rds template on this git repository.
+        PrivateSubnet1: !GetAtt VPC.Outputs.PrivateSubnet1
+        PrivateSubnet2: !GetAtt VPC.Outputs.PrivateSubnet2
+        vpcId: !GetAtt VPC.Outputs.VPC
+        secGroup: !GetAtt VPC.Outputs.SecurityGroup
+  #here we call the ec2 template. 
+  EC2: 
+    Type: AWS::CloudFormation::Stack
+    Properties: 
+      TemplateURL: !Sub "https://${BucketName}.s3-us-west-2.amazonaws.com/EC2.yml"
+      Parameters: 
+        #chek we can send outputs of diferent stack templates. 
+        dbEndpoint: !GetAtt RDS.Outputs.RDSEndpoint
+        PublicSubnet1: !GetAtt VPC.Outputs.PublicSubnet1
+        secGroup: !GetAtt VPC.Outputs.SecurityGroup
+        KeyName: !Ref KeyName

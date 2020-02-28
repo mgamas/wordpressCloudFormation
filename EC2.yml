@@ -1,0 +1,121 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: 'EC2 for wordpress'
+#parametes to create the ec2
+Parameters: 
+  dbName:
+    Description: database name
+    Type: String
+    Default: wordpressEG
+  
+  dbUserName:
+    Default: admin
+    Description: The WordPress database admin account username
+    Type: String
+
+  dbPassword:
+    Default: password
+    #the noEcho property will hide the value 
+    NoEcho: 'true'
+    Description: The WordPress database admin account password
+    Type: String
+
+  dbEndpoint:
+    Description: The WordPress database admin account password
+    Type: String
+  #check this, is specting a aws type, we have to send that from the master template.
+  KeyName:
+    Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+    Type: 'AWS::EC2::KeyPair::KeyName'
+    ConstraintDescription: must be the name of an existing EC2 KeyPair.
+  
+  PublicSubnet1:
+    Description: Nombre de la subnet 1 privada en donde estar? la BD
+    Type: String
+  
+  secGroup:
+    Description: Nombre del security Group
+    Type: String
+
+Resources: 
+  #ec2 instance 
+  EC2InstanceWordpress:
+    Type: AWS::EC2::Instance
+    Properties:
+      #we make reference to the keyname to get acces by ssh later.
+      KeyName: !Ref KeyName
+      #here I burns the image id, but you can you can create a set to recibe that like a parameter. 
+      ImageId: 'ami-0e8c04af2729ff1bb'
+      #same that image id, the instance type can be get on parameters set. 
+      InstanceType: t2.micro
+      #on network interface we configure the security group and the subnet for the ec2
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet: 
+            - !Ref secGroup
+          SubnetId:  !Ref PublicSubnet1
+      #use the usetData to pre configure the ec2, in this case i use for setup the wp enviroment on ec2
+      UserData: 
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          yum install httpd -y
+          amazon-linux-extras install php7.2
+          cd /var/www/html
+          wget https://wordpress.org/latest.tar.gz
+          tar -xzf latest.tar.gz
+          cp -r wordpress/* /var/www/html/
+          rm -rf wordpress
+          rm -rf latest.tar.gz
+          chmod -R 755 wp-content
+          chown -R apache:apache wp-content
+          service httpd start
+          chkconfig httpd on
+          rm -rf wp-config.php
+          echo "<?php
+          /**
+          * Custom WordPress configurations on "wp-config.php" file.
+          *
+          * This file has the following configurations: MySQL settings, Table Prefix, Secret Keys, WordPress Language, ABSPATH and more.
+          * For more information visit {@link https://codex.wordpress.org/Editing_wp-config.php Editing wp-config.php} Codex page.
+          * Created using {@link http://generatewp.com/wp-config/ wp-config.php File Generator} on GenerateWP.com.
+          *
+          * @package WordPress
+          * @generator GenerateWP.com
+          */
+          
+          
+          /* MySQL settings */
+          define( 'DB_NAME',     '${dbName}' );
+          define( 'DB_USER',     '${dbUserName}' );
+          define( 'DB_PASSWORD', '${dbPassword}' );
+          define( 'DB_HOST',     '${dbEndpoint}' );
+          define( 'DB_CHARSET',  'utf8mb4' );
+          
+          
+          /* MySQL database table prefix. */
+          \$table_prefix = 'wp_';
+          
+          
+          /* Authentication Unique Keys and Salts. */
+          /* https://api.wordpress.org/secret-key/1.1/salt/ */
+          define('AUTH_KEY',         'O=6n~I[dd--Q-n:RQ)4-Rorbl09sjjC3R3CI[/{2b~3N 3@=N++sG&$ffs$!(aIA');
+          define('SECURE_AUTH_KEY',  'I0T_5DbY@A~2}j-_IZH1|rQ8{-5tDN-(w/`J8CT+9=S76bj#ug_J`{Qmlcz/$&K:');
+          define('LOGGED_IN_KEY',    'n<raI.{7Eq?H2sH.C,BDar7G[zhR5 Ns*;v.UnWfF>sYhbtC|j_O/P>WopL`XYT0');
+          define('NONCE_KEY',        'vFmk.m<6Y5%1J$[Nr8P/Rkg7H.^p,1Y%C<veU-(5lJ%RV$VXsB2%cr4}%}$dM=#8');
+          define('AUTH_SALT',        'nxeVT@$$<vX!BH|`-VJo8_25dl>h@GV-?&.*S !8.1|k&fA>iT*45bf/6%@n+; z');
+          define('SECURE_AUTH_SALT', '6MM0V7MP2Gi>1qLD0_3P6>TZ.>=Hm^2bPM+v?Da^,?n@(Xaedo(fj^F:-9+AueV=');
+          define('LOGGED_IN_SALT',   'uDH+G COoB:P` 1GUpgpPh@r&v-3|YrF^t6noo1jjvUqF.a8XfZ>c[z*f.p`pc)c');
+          define('NONCE_SALT',       'g+{bGP=+<{i<m@R 2u w^B|k}{q/~5)GbPZ<~zvLzu)O]QGuKfdbY{i^?b@pyt?y');
+                    
+                    
+          /* Absolute path to the WordPress directory. */
+          if ( !defined('ABSPATH') )
+          define('ABSPATH', dirname(__FILE__) . '/');
+          
+          /* Sets up WordPress vars and included files. */
+          require_once(ABSPATH . 'wp-settings.php');
+          ?>" > wp-config.php
+      Tags:
+        - Key: Name
+          Value: ec2EgWordpress

@@ -1,0 +1,263 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: My first cloudformation VPC
+
+Parameters: 
+  #we use the enviroment parameter to give referencial names to all the resources that we are gona create. 
+  EnvironmentName:
+    Description: Prefix to tags of resourcer names
+    Type: String
+    Default: egVPC
+  # the next parameters are for create network area for vpc
+  VpcCIDR:
+    Description: CIDR Notation for vpc
+    Type: String
+    Default: 10.0.0.0/16
+
+  PublicSubnet1CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.1.0/24
+
+  PublicSubnet2CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.2.0/24
+  
+  PublicSubnet3CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.3.0/24
+
+  PrivateSubnet1CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.4.0/24
+
+  PrivateSubnet2CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.5.0/24
+
+  PrivateSubnet3CIDR:
+    Description: Enter the ip range
+    Type: String
+    Default: 10.0.6.0/24
+
+
+Resources: 
+  #creating the vpc
+  vpcEG:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  #creating the internet gateway
+  InternetGatewayEG:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Ref EnvironmentName
+  #creating the attachment betwen the vpc and the internet gateway
+  AttachGatewayEG:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !Ref vpcEG
+      InternetGatewayId: !Ref InternetGatewayEG
+  #on next section we can se the subnet creation.
+  PublicSubnet1EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2a'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PublicSubnet1CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PublicSubnet1
+  
+  PublicSubnet2EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2b'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PublicSubnet2CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PublicSubnet2
+
+  PublicSubnet3EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2c'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PublicSubnet3CIDR
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PublicSubnet3
+  
+  PrivateSubnet1EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2a'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PrivateSubnet1CIDR
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PrivateSubnet1  
+  
+  PrivateSubnet2EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2b'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PrivateSubnet2CIDR
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PrivateSubnet2 
+
+  PrivateSubnet3EG:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: 'us-west-2c'
+      VpcId: !Ref vpcEG
+      CidrBlock: !Ref PrivateSubnet3CIDR
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} PrivateSubnet3 
+
+  #we have to create a  routeble for private subnets and public subnets. 
+  PublicRouteTableEG:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcEG
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Public Routes
+  #if we want that ours subnates have acces to specific location like internet we need to create a route.
+  #remember use a natgateway to give acces to the internet to a private subnates.
+  #you can also create a instance net, but allways a nat gateway is the easy and secure way.
+  DefaultPublicRouteEG:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGatewayEG
+    Properties:
+      RouteTableId: !Ref PublicRouteTableEG
+      DestinationCidrBlock:  0.0.0.0/0
+      GatewayId: !Ref InternetGatewayEG
+
+  PublicSubnet1RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1EG
+      RouteTableId: !Ref PublicRouteTableEG
+
+  PublicSubnet2RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet2EG
+      RouteTableId: !Ref PublicRouteTableEG
+  
+  PublicSubnet3RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet3EG
+      RouteTableId: !Ref PublicRouteTableEG
+
+  PrivateRouteTableEG:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref vpcEG
+      Tags:
+        - Key: Name
+          Value: !Sub ${EnvironmentName} Private Routes
+
+  PrivateSubnet1RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1EG
+      RouteTableId: !Ref PrivateRouteTableEG
+
+  PrivateSubnet2RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2EG
+      RouteTableId: !Ref PrivateRouteTableEG
+
+  PrivateSubnet3RouteTableAssoEG:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet3EG
+      RouteTableId: !Ref PrivateRouteTableEG
+  #the security group is used to allow acces to specific ports, for ec2 instances or rds. 
+  secGroupEG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: "Internet Group EG"
+      GroupDescription: "Rules for internet"
+      VpcId: !Ref vpcEG
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+          #you can see i configure specify to the egress but you can let it blank, thats will made aws configure a default egress for you.
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: '22'
+          ToPort: '22'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '80'
+          ToPort: '80'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '3306'
+          ToPort: '3306'
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: '443'
+          ToPort: '443'
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: SecurityConect
+#the outputs section is used to send parameters to be used for a master template. 
+Outputs:
+  #on output you do reference to the objects created on the template. 
+  VPC:
+    Description: referencia para envio de la vpc
+    Value: !Ref vpcEG
+
+  PrivateSubnet1:
+    Description: referencia subnet 1 para rds
+    Value: !Ref PrivateSubnet1EG
+  
+  PrivateSubnet2:
+    Description: referencia subnet 2 para rds
+    Value: !Ref PrivateSubnet2EG
+  
+  PublicSubnet1:
+    Description: referencia subnet 2 para rds
+    Value: !Ref PublicSubnet1EG
+  
+  SecurityGroup:
+    Description: referencia SecurityGroup for templates
+    Value: !Ref secGroupEG
