@@ -7,3 +7,16 @@ Cloudformation: AWS CloudFormation is a service that helps you model and set up 
 
 On this repo, we can found the structure to create a wordpress site split on four templates. the structure has a secuential form, we use the master template to call the vpc, rds, and ec2 templates to create the site. You can check the code to undestand the way to do it. Yaml, is the code used to create the templates. 
 
+  ## MasterTemplate.yml
+The master template, has the task of receive the parameters needed and requested by the other templates that will be called since the master template. Logical the master makes the relationships betwen the other templates, doing the conections using inputs and outputs parameters.
+ ### parameters for master template
+ >  KeyName:
+ 
+      - Type: 'AWS::EC2::KeyPair::KeyName'
+      - Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+      
+ >  BucketName:
+ 
+      - Type: String
+      - Description: S3 buket name 
+
