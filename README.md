@@ -24,7 +24,51 @@ The master template, has the task of receive the parameters needed and requested
 
 *** you can see detail about parameters on file comments. ***
 
-### VPC Template [vpc.yml] ⚙️
+## VPC Template [vpc.yml] ⚙️
+the vpc template, creates the network cloud infraestructure to delivery services that alow wordpress to execute. The vpc present on this repository has six subnets, three private and three public, the private subnets handles the RDS, better know as relacional database service. The public subnets handles de EC2 instance allowed conections from the internet. the vpc has an internet gateway, and on the file you can found the security group, chek the file to see more details. 
 
 ***VPC Diagram***
 ![alt text](https://github.com/mgamas/wordpressCloudFormation/raw/master/vpcImage.png)
+
+### parameters for vpc template.
+
+> EnvironmentName:
+   - Description: Prefix to tags of resourcer names
+   - Type: String
+   - Default: egVPC
+  
+> VpcCIDR:
+   - Description: CIDR Notation for vpc
+   - Type: String
+   - Default: 10.0.0.0/16
+
+ > PublicSubnet1CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.1.0/24
+
+ > PublicSubnet2CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.2.0/24
+  
+ > PublicSubnet3CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.3.0/24
+
+> PrivateSubnet1CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.4.0/24
+
+> PrivateSubnet2CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.5.0/24
+
+> PrivateSubnet3CIDR:
+   - Description: Ip range
+   - Type: String
+   - Default: 10.0.6.0/24
+
