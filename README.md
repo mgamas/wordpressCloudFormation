@@ -74,9 +74,62 @@ the vpc template, creates the network cloud infraestructure to delivery services
    
 
 ## RDS Template [rds-mysql.yml] ⚙️
-the vpc template, creates the network cloud infraestructure to delivery services that alow wordpress to execute. The vpc present on this repository has six subnets, three private and three public, the private subnets handles the RDS, better know as relacional database service. The public subnets handles de EC2 instance allowed conections from the internet. the vpc has an internet gateway, and on the file you can found the security group, chek the file to see more details. 
+the rds template creates the relational database, in this case, we create a MySQL database using the standard rds cloudformation. the purpose of the database is to store the WordPress site information, to allow that we need to open communication ports through a database security group. Check the code see more details about the template. 
 
-***VPC Diagram***
+***RDS Diagram***
 
 ![alt text](https://github.com/mgamas/wordpressCloudFormation/blob/master/rdsImage.PNG)
 
+### parameters for vpc template.
+
+> enviromentName:
+  - Description: enviroment for all rds
+  - Tpe: String
+
+> dbClass:
+  - Description: database instance class
+  - Type: String
+  - Default: db.t2.micro
+    
+> EngineVer:
+  - Description: Version of the Engine of the DB.
+  - Type: String
+  - Default: '5.7.22'
+  
+> dbName:
+  - Description: database name
+  - Type: String
+  - Default: wordpressEG
+  
+> dbUserName:
+  - Default: admin
+  - NoEcho: 'true'
+  - Description: The WordPress database admin account username
+  - Type: String
+    
+> dbPassword:
+  - Default: password
+  - NoEcho: 'true'
+  - Description: The WordPress database admin account password
+  - Type: String
+
+> DBAllocatedStorage:
+  - Default: '5'
+  - Description: The size of the database (Gb)
+  - Type: Number
+  
+> PrivateSubnet1:
+  - Description: Nombre de la subnet 1 privada en donde estar? la BD
+  - Type: String
+
+> PrivateSubnet2:
+  - Description: Nombre de la subnet 2 privada en donde estar? la BD
+  - Type: String
+  
+> vpcId:
+  - Description: Nombre de la VPC
+  - Type: String
+  
+> secGroup:
+  - Description: Nombre del security Group
+  - Type: String
