@@ -77,7 +77,6 @@ the vpc template, creates the network cloud infraestructure to delivery services
 the vpc template, creates the network cloud infraestructure to delivery services that alow wordpress to execute. The vpc present on this repository has six subnets, three private and three public, the private subnets handles the RDS, better know as relacional database service. The public subnets handles de EC2 instance allowed conections from the internet. the vpc has an internet gateway, and on the file you can found the security group, chek the file to see more details. 
 
 ***VPC Diagram***
-![alt text](https://github.com/mgamas/wordpressCloudFormation/blob/master/rdsImage.PNG)
 
-### parameters for vpc template.
+![alt text](https://github.com/mgamas/wordpressCloudFormation/blob/master/rdsImage.PNG)
 
