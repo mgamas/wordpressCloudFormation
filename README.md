@@ -73,7 +73,7 @@ the vpc template, creates the network cloud infraestructure to delivery services
    - Default: 10.0.6.0/24
    
 
-## RDS Template [rds-mysql.yml] ⚙️
+## RDS Template [rds-mysql.yml] 💽 
 the rds template creates the relational database, in this case, we create a MySQL database using the standard rds cloudformation. the purpose of the database is to store the WordPress site information, to allow that we need to open communication ports through a database security group. Check the code see more details about the template. 
 
 ***RDS Diagram***
@@ -126,4 +126,41 @@ the rds template creates the relational database, in this case, we create a MySQ
   
 > secGroup:
   - Description: security group name, the templates need to receive an sg to create a DB security group
+  - Type: String
+
+
+## EC2 Template [EC2.yml] 💻
+the EC2 template builds a virtual machine on the cloud and deploys the services needed to stand up the WordPress, like the apache web service. We use the user data property of the EC2 to configure the environment on the instance and configure the connection between the WordPress and the database located on rds. 
+
+
+![alt text](https://github.com/mgamas/wordpressCloudFormation/blob/master/ec2Image.PNG)
+
+### parameters for EC2 template. 
+
+> dbName:
+  - Description: database name
+  - Type: String
+  
+> dbUserName:
+  - Description: The WordPress database admin account username
+  - Type: String
+
+> dbPassword:
+  -  Description: The WordPress database admin account password
+  -  Type: String
+
+> dbEndpoint:
+  - Description: the rds string conection.
+  - Type: String
+    
+> KeyName:
+  - Description: Name of an existing EC2 KeyPair to enable SSH access to the instances
+  - Type: 'AWS::EC2::KeyPair::KeyName'
+  
+> PublicSubnet1:
+  -  Description: public subnet assignment to allow connection to the internet
+  -  Type: String
+  
+> secGroup:
+  - Description: EC2 security group name
   - Type: String
