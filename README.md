@@ -84,7 +84,7 @@ the rds template creates the relational database, in this case, we create a MySQ
 
 > enviromentName:
   - Description: enviroment for all rds
-  - Tpe: String
+  - Type: String
 
 > dbClass:
   - Description: database instance class
@@ -94,42 +94,36 @@ the rds template creates the relational database, in this case, we create a MySQ
 > EngineVer:
   - Description: Version of the Engine of the DB.
   - Type: String
-  - Default: '5.7.22'
   
 > dbName:
   - Description: database name
   - Type: String
-  - Default: wordpressEG
   
 > dbUserName:
-  - Default: admin
-  - NoEcho: 'true'
   - Description: The WordPress database admin account username
   - Type: String
     
 > dbPassword:
-  - Default: password
   - NoEcho: 'true'
   - Description: The WordPress database admin account password
   - Type: String
 
 > DBAllocatedStorage:
-  - Default: '5'
   - Description: The size of the database (Gb)
   - Type: Number
   
 > PrivateSubnet1:
-  - Description: Nombre de la subnet 1 privada en donde estar? la BD
+  - Description: Subnet to allow communication for the rds
   - Type: String
 
 > PrivateSubnet2:
-  - Description: Nombre de la subnet 2 privada en donde estar? la BD
+  - Description: Subnet to allow communication for the rds, aws requests 2 subnets
   - Type: String
   
 > vpcId:
-  - Description: Nombre de la VPC
+  - Description: VPC name, the components for WordPress site has to be on the same vpc
   - Type: String
   
 > secGroup:
-  - Description: Nombre del security Group
+  - Description: security group name, the templates need to receive an sg to create a DB security group
   - Type: String
